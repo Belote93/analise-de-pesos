@@ -2,435 +2,566 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Manmart Comercial - Controlo de Peso</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --manmart: #1a3a6b;
-            --bg: #f5f6f8;
+            --bg: #f1f5f9;
             --card: #ffffff;
-            --text: #1a1a1a;
-            --text2: #5a5a5a;
-            --text3: #999;
-            --border: #eaecef;
-            --green: #2d9c5e;
-            --green-bg: #edf7f1;
-            --red: #dc3545;
-            --red-bg: #fdf2f3;
-            --amber: #c47f17;
-            --amber-bg: #fef9f0;
+            --text: #1e293b;
+            --text2: #475569;
+            --border: #e2e8f0;
+            --green: #10b981;
+            --green-bg: #dcfce7;
+            --red: #ef4444;
+            --red-bg: #fee2e2;
+            --amber: #f59e0b;
+            --amber-bg: #fef3c7;
+            --radius: 14px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.5;
-            min-height: 100vh;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-font-smoothing: antialiased;
-        }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
 
-        .splash {
-            position: fixed; inset: 0; background: #fff; display: flex;
-            flex-direction: column; align-items: center; justify-content: center;
-            z-index: 9999; transition: opacity .4s, visibility .4s;
-        }
-        .splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        .splash-logo { width: 72px; height: 72px; animation: pulse 2s ease-in-out infinite; }
-        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
-        .splash-title { font-size: 18px; font-weight: 700; color: var(--manmart); margin-top: 12px; letter-spacing: -.3px; }
-        .splash-dot { width: 5px; height: 5px; background: var(--manmart); border-radius: 50%; margin-top: 16px; animation: dotPulse 1s ease-in-out infinite; }
-        @keyframes dotPulse { 0%,100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.3); } }
+        .topbar { background: #fff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); }
+        .topbar .brand { display: flex; align-items: center; gap: 8px; }
+        .topbar .brand svg { width: 28px; height: 28px; }
+        .topbar .brand h1 { font-size: 15px; font-weight: 700; color: var(--manmart); }
+        .topbar .tol { display: flex; align-items: center; gap: 4px; background: var(--amber-bg); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .topbar .tol input { width: 30px; border: none; background: none; font-weight: 700; font-size: 12px; text-align: center; outline: none; color: var(--manmart); }
 
-        .topbar {
-            background: #fff; padding: 0 20px; display: flex; align-items: center;
-            justify-content: space-between; height: 52px; position: sticky; top: 0; z-index: 100;
-            border-bottom: 1px solid var(--border);
-        }
-        .topbar .brand { display: flex; align-items: center; gap: 10px; }
-        .topbar .brand svg { width: 30px; height: 30px; }
-        .topbar .brand h1 { font-size: 14px; font-weight: 700; color: var(--manmart); }
-        .topbar .tolerance { display: flex; align-items: center; gap: 4px; background: var(--amber-bg); padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; color: var(--amber); }
-        .topbar .tolerance input { width: 28px; border: none; background: transparent; font-weight: 700; font-size: 11px; text-align: center; outline: none; color: var(--manmart); font-family: inherit; }
+        .tab { display: none; padding: 14px; animation: fade .25s; }
+        .tab.active { display: block; }
+        @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
-        .content { padding: 16px 16px 85px; }
-        .tab { display: none; }
-        .tab.active { display: block; animation: fade .25s ease; }
-        @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: #fff; border-radius: var(--radius); padding: 16px; border: 1px solid var(--border); margin-bottom: 12px; }
+        .card h3 { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 10px; text-transform: uppercase; letter-spacing: .5px; }
 
-        .home { text-align: center; padding: 40px 20px; }
-        .home .logo { width: 100px; height: 100px; margin: 0 auto 20px; }
-        .home h1 { font-size: 22px; font-weight: 700; color: var(--manmart); }
-        .home .sub { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin: 4px 0 20px; }
-        .home .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 320px; margin: 0 auto 24px; }
-        .home .card { background: #fff; border-radius: 12px; padding: 16px 12px; text-align: center; border: 1px solid var(--border); cursor: pointer; transition: .15s; }
-        .home .card:active { background: #f9fafb; transform: scale(.98); }
-        .home .card .ico { font-size: 24px; margin-bottom: 4px; }
-        .home .card .lbl { font-size: 11px; font-weight: 600; color: var(--text); }
-        .home .sig { font-size: 11px; color: var(--text3); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 20px; max-width: 320px; margin: 0 auto; }
-        .home .sig strong { color: var(--text2); font-size: 12px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-size: 10px; font-weight: 600; color: var(--text2); text-transform: uppercase; margin-bottom: 4px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; font-family: inherit; outline: none; background: #fafbfc; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--manmart); background: #fff; }
+        textarea { resize: vertical; min-height: 150px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8; }
+        .btn { width: 100%; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 14px; border: none; cursor: pointer; font-family: inherit; }
+        .btn:active { transform: scale(.97); }
+        .btn-primary { background: var(--manmart); color: #fff; }
+        .btn-outline { background: #fff; color: var(--manmart); border: 1.5px solid var(--manmart); }
+        .btn-danger { background: #fff; color: var(--red); border: 1.5px solid #fca5a5; }
+        .btn-wa { background: #25D366; color: #fff; }
+        .btn-sm { padding: 8px 14px; font-size: 11px; width: auto; }
 
-        .empty { text-align: center; padding: 50px 20px; color: var(--text3); }
-        .empty .ico { font-size: 40px; margin-bottom: 12px; opacity: .5; }
-        .empty h3 { font-size: 15px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
-        .empty p { font-size: 12px; max-width: 260px; margin: 0 auto; }
-
-        .reg-card { background: #fff; border-radius: 14px; padding: 18px; border: 1px solid var(--border); margin-bottom: 12px; }
-        .reg-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
-        .reg-card textarea { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'SF Mono', 'Consolas', monospace; font-size: 13px; min-height: 120px; background: #fafbfc; outline: none; resize: vertical; }
-        .reg-card textarea:focus { border-color: var(--manmart); background: #fff; }
-        .btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: .15s; }
-        .btn:active { transform: scale(.98); }
-        .btn-p { background: var(--manmart); color: #fff; margin-top: 10px; }
-        .btn-o { background: #fff; color: var(--manmart); border: 1.5px solid var(--manmart); }
-        .btn-d { background: #fff; color: var(--red); border: 1.5px solid #f5c6cb; }
-
-        .kpi-row { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; scrollbar-width: none; }
+        .kpi-row { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 10px; scrollbar-width: none; }
         .kpi-row::-webkit-scrollbar { display: none; }
-        .kpi { flex-shrink: 0; width: 110px; background: #fff; border-radius: 12px; padding: 12px; text-align: center; border: 1px solid var(--border); }
+        .kpi { flex-shrink: 0; min-width: 100px; background: #fff; border-radius: 12px; padding: 12px 10px; text-align: center; border: 1px solid var(--border); }
         .kpi .v { font-size: 20px; font-weight: 700; }
-        .kpi .l { font-size: 9px; font-weight: 600; color: var(--text3); text-transform: uppercase; }
-
+        .kpi .l { font-size: 8px; font-weight: 600; color: var(--text2); text-transform: uppercase; }
         .banner { padding: 12px 14px; border-radius: 12px; margin-bottom: 12px; font-weight: 600; font-size: 12px; display: flex; justify-content: space-between; border: 1.5px solid; }
-        .b-ex { background: var(--green-bg); color: #1a5c34; border-color: #a3d9b1; }
-        .b-ok { background: var(--amber-bg); color: #6b3f0a; border-color: #f0d07c; }
-        .b-cr { background: var(--red-bg); color: #7a1d1d; border-color: #f5b5b5; }
+        .b-ex { background: var(--green-bg); color: #065f46; border-color: #6ee7b7; }
+        .b-ok { background: var(--amber-bg); color: #92400e; border-color: #fcd34d; }
+        .b-cr { background: var(--red-bg); color: #991b1b; border-color: #fca5a5; }
+        .chart-box { min-height: 250px; }
 
-        .chart-card { background: #fff; border-radius: 14px; padding: 14px; border: 1px solid var(--border); margin-bottom: 10px; }
-        .chart-card h3 { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
-        .chart-box { min-height: 260px; }
-
-        .table-card { background: #fff; border-radius: 14px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 10px; }
-        .table-filter { display: flex; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
-        .table-filter select { flex: 1; padding: 8px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 11px; font-family: inherit; background: #fff; outline: none; }
-        .table-scroll { max-height: 50vh; overflow-y: auto; }
+        .tbl-wrap { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+        .tbl-scroll { max-height: 45vh; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        table th { background: #f8f9fa; padding: 9px 6px; text-align: left; font-weight: 600; font-size: 9px; text-transform: uppercase; color: var(--text3); position: sticky; top: 0; }
-        table td { padding: 8px 6px; border-bottom: 1px solid #f5f5f5; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 600; }
-        .badge-ok { background: var(--green-bg); color: #1a5c34; }
-        .badge-no { background: var(--red-bg); color: #7a1d1d; }
+        table th { background: #f8fafc; padding: 8px 6px; text-align: left; font-weight: 600; font-size: 9px; text-transform: uppercase; color: var(--text2); position: sticky; top: 0; }
+        table td { padding: 7px 6px; border-bottom: 1px solid #f5f5f5; }
+        .badge { padding: 3px 8px; border-radius: 10px; font-size: 9px; font-weight: 600; }
+        .badge-ok { background: var(--green-bg); color: #065f46; }
+        .badge-no { background: var(--red-bg); color: #991b1b; }
 
-        .toast { position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; padding: 9px 20px; border-radius: 20px; font-size: 11px; font-weight: 600; z-index: 999; opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
-        .toast.show { opacity: 1; }
+        .empty { text-align: center; padding: 40px; color: #94a3b8; }
+        .empty .ico { font-size: 40px; margin-bottom: 10px; }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 5px 0 8px; z-index: 100; }
-        .bottom-nav button { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; color: var(--text3); font-family: inherit; font-size: 9px; font-weight: 600; padding: 3px 6px; }
-        .bottom-nav button.active { color: var(--manmart); }
-        .bottom-nav button .ni { font-size: 17px; }
+        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 11px; font-weight: 600; z-index: 999; opacity: 0; transition: .3s; pointer-events: none; white-space: nowrap; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(-5px); }
+
+        .nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; border-top: 1px solid var(--border); z-index: 100; }
+        .nav button { flex: 1; padding: 10px; border: none; background: none; display: flex; flex-direction: column; align-items: center; gap: 2px; color: #94a3b8; font-size: 9px; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .nav button.active { color: var(--manmart); }
+        .nav button .ni { font-size: 17px; }
+        .sig { text-align: center; padding: 16px; color: #94a3b8; font-size: 10px; border-top: 1px solid var(--border); margin-top: 12px; }
+        .sig strong { color: var(--text2); }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: flex-end; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: #fff; border-radius: 20px 20px 0 0; padding: 24px 20px 30px; width: 100%; max-width: 450px; animation: slideUp .3s; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-content h3 { font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 16px; }
+        .modal-content .btn { margin-bottom: 8px; }
+        .btn-close { background: #f1f5f9; color: var(--text2); }
+
+        #captureArea { position: absolute; left: -9999px; top: 0; width: 420px; background: #fff; padding: 20px; font-family: system-ui, -apple-system, sans-serif; }
+        #captureArea h2 { font-size: 16px; color: #1a3a6b; margin-bottom: 4px; }
+        #captureArea h3 { font-size: 12px; color: #475569; margin: 12px 0 6px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; text-transform: uppercase; }
+        #captureArea .cap-stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+        #captureArea .cap-stat { background: #f8fafc; padding: 8px; border-radius: 6px; text-align: center; }
+        #captureArea .cap-stat .cap-v { font-size: 16px; font-weight: 700; color: #1a3a6b; }
+        #captureArea .cap-stat .cap-l { font-size: 8px; color: #64748b; text-transform: uppercase; }
+        #captureArea table { width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 10px; }
+        #captureArea table th { background: #f1f5f9; padding: 5px; text-align: left; font-weight: 600; }
+        #captureArea table td { padding: 4px 5px; border-bottom: 1px solid #f1f5f9; }
+        #captureArea .cap-sig { text-align: center; font-size: 9px; color: #94a3b8; margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 8px; }
     </style>
 </head>
 <body>
 
-    <div class="splash" id="splash">
-        <svg class="splash-logo" viewBox="0 0 500 500"><path d="M250 110 L319.28 150 L319.28 230 L250 270 L180.72 230 L180.72 150 Z" fill="#1a3a6b"/><text x="250" y="218" font-family="Arial" font-weight="900" font-size="100" fill="white" text-anchor="middle">M</text></svg>
-        <div class="splash-title">MANMART</div>
-        <div class="splash-dot"></div>
-    </div>
-
     <div class="topbar">
         <div class="brand">
-            <svg viewBox="0 0 500 500"><path d="M250 110 L319.28 150 L319.28 230 L250 270 L180.72 230 L180.72 150 Z" fill="#1a3a6b"/><text x="250" y="218" font-family="Arial" font-weight="900" font-size="100" fill="white" text-anchor="middle">M</text></svg>
+            <svg viewBox="0 0 500 500"><path d="M250 110 L319 150 L319 230 L250 270 L181 230 L181 150 Z" fill="#1a3a6b"/><text x="250" y="218" font-family="Arial" font-weight="900" font-size="100" fill="white" text-anchor="middle">M</text></svg>
             <h1>MANMART</h1>
         </div>
-        <div class="tolerance">± <input type="number" id="tol" value="10" min="1" max="30" step="0.5" onchange="updateTol()"> %</div>
+        <div class="tol">± <input type="number" id="tolInput" value="10" min="1" max="30" step="0.5" onchange="update()"> %</div>
     </div>
 
-    <div class="content">
-
-        <div class="tab active" id="tab-home">
-            <div class="home">
-                <svg class="logo" viewBox="0 0 500 500"><path d="M250 110 L319.28 150 L319.28 230 L250 270 L180.72 230 L180.72 150 Z" fill="#1a3a6b"/><text x="250" y="218" font-family="Arial" font-weight="900" font-size="100" fill="white" text-anchor="middle">M</text><text x="250" y="370" font-family="Verdana" font-weight="bold" font-size="65" fill="#1a3a6b" text-anchor="middle">MANMART</text><text x="250" y="425" font-family="Verdana" font-weight="bold" font-size="28" fill="#1a3a6b" text-anchor="middle">COMERCIAL, LDA</text></svg>
-                <h1>Controlo de Peso</h1>
-                <p class="sub">Análise de Uniformidade</p>
-                <div class="grid">
-                    <div class="card" onclick="go('registro')"><div class="ico">📝</div><div class="lbl">Registar</div></div>
-                    <div class="card" onclick="go('dashboard')"><div class="ico">📊</div><div class="lbl">Dashboard</div></div>
-                    <div class="card" onclick="go('tabela')"><div class="ico">📋</div><div class="lbl">Dados</div></div>
-                    <div class="card" onclick="go('stats')"><div class="ico">📐</div><div class="lbl">Métricas</div></div>
+    <main>
+        <!-- REGISTO -->
+        <div class="tab active" id="tab-reg">
+            <div class="card">
+                <h3>📝 Registo de Pesagem</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>📅 Data</label><input type="date" id="loteData"></div>
+                    <div class="form-group"><label>🏠 Aviário</label><input type="text" id="loteAviario" placeholder="Ex: A1"></div>
                 </div>
-                <div class="sig">
-                    <strong>Belote Matsinhe</strong><br>
-                    Farm Manager &amp; Analyst<br>
-                    +258 862159003 · belotematsinhe@gmail.com
+                <div class="form-group"><label>🐔 Idade (semanas)</label><input type="number" id="loteIdade" placeholder="Ex: 5" min="1" max="50"></div>
+                <div class="form-group">
+                    <label>⚖️ Pesos (Fila Nível Posição Peso)</label>
+                    <textarea id="dataInput" placeholder="1 1 1 2450&#10;1 1 2 2380.5&#10;2 1 1 2510&#10;..."></textarea>
+                    <p style="font-size:9px;color:var(--text2);margin-top:4px">Formato: <b>Fila Nível Posição Peso</b> — um por linha</p>
                 </div>
+                <button class="btn btn-primary" onclick="processInput()">Registar Pesagens</button>
             </div>
+            <div class="card"><h3>🕐 Últimos Registos</h3><div id="recentList"></div></div>
         </div>
 
-        <div class="tab" id="tab-registro">
-            <div class="reg-card">
-                <h3>Pesos (separados por linha, vírgula ou espaço)</h3>
-                <textarea id="inPesos" placeholder="2450&#10;2380.5&#10;2510.25&#10;2390&#10;..."></textarea>
-                <button class="btn btn-p" onclick="add()">Registrar</button>
-            </div>
-            <div class="reg-card">
-                <h3>Últimos Registos</h3>
-                <div class="table-scroll" style="max-height:250px">
-                    <table><thead><tr><th>#</th><th>Peso (g)</th><th style="text-align:center">Status</th></tr></thead><tbody id="lastList"></tbody></table>
-                    <div id="emptyReg" class="empty"><div class="ico">📝</div><h3>Sem registos</h3></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab" id="tab-dashboard">
-            <div id="dashEmpty" class="empty"><div class="ico">📊</div><h3>Sem dados</h3><p>Registe pesos primeiro.</p><button class="btn btn-p" style="width:auto;margin-top:12px;padding:10px 20px" onclick="go('registro')">Registar</button></div>
+        <!-- DASHBOARD -->
+        <div class="tab" id="tab-dash">
+            <div id="noData" class="empty"><div class="ico">📊</div><h3>Sem dados</h3><p>Registe pesos primeiro.</p></div>
             <div id="dashContent" style="display:none">
                 <div id="banner"></div>
                 <div class="kpi-row" id="kpiRow"></div>
-                <div class="chart-card"><h3>Histograma · Distribuição dos Pesos</h3><div class="chart-box" id="chartHist"></div></div>
-                <div class="chart-card"><h3>Box Plot · Dispersão</h3><div class="chart-box" id="chartBox"></div></div>
-                <div class="chart-card"><h3>Uniformidade do Lote</h3><div class="chart-box" id="chartPie"></div></div>
+                <div class="card"><h3>📈 Histograma</h3><div class="chart-box" id="chartHist"></div></div>
+                <div class="card"><h3>📦 Box Plot</h3><div class="chart-box" id="chartBox"></div></div>
+                <div class="card"><h3>🍩 Uniformidade</h3><div class="chart-box" id="chartPie"></div></div>
+                <div class="card"><h3>📊 Peso Médio por Fila</h3><div class="chart-box" id="chartFila"></div></div>
+                
+                <!-- ESTATÍSTICAS DESCRITIVAS -->
+                <div class="card"><h3>📐 Estatísticas Descritivas</h3><div id="statsTable"></div></div>
+                
+                <!-- ANÁLISE POR FILA -->
+                <div class="card"><h3>🏠 Análise por Fila</h3><div id="filaTable"></div></div>
+                
+                <!-- ANÁLISE POR NÍVEL -->
+                <div class="card"><h3>📏 Análise por Nível</h3><div id="nivelTable"></div></div>
+
+                <button class="btn btn-wa" onclick="shareWhatsApp()" style="margin-bottom:8px">📤 Partilhar no WhatsApp</button>
+                <button class="btn btn-outline" onclick="exportCSV()">📥 Exportar CSV</button>
+                <div class="sig"><strong>Belote Matsinhe</strong><br>Farm Manager & Analyst<br>+258 862159003</div>
             </div>
         </div>
 
-        <div class="tab" id="tab-tabela">
-            <div id="tabEmpty" class="empty"><div class="ico">📋</div><h3>Sem dados</h3></div>
-            <div id="tabContent" style="display:none">
-                <div class="table-card">
-                    <div class="table-filter">
-                        <select id="fStat" onchange="renderTab()"><option value="">Todos os Status</option><option value="Dentro">Dentro</option><option value="Fora">Fora</option></select>
-                    </div>
-                    <div style="padding:6px 10px;display:flex;gap:6px">
-                        <button class="btn btn-o" onclick="csv()" style="flex:1;padding:8px;font-size:10px">Exportar CSV</button>
-                        <button class="btn btn-d" onclick="clearAll()" style="flex:1;padding:8px;font-size:10px">Limpar Tudo</button>
-                    </div>
-                    <div class="table-scroll"><table><thead><tr><th>#</th><th>Peso (g)</th><th style="text-align:center">Status</th><th style="text-align:right">Desvio (g)</th><th></th></tr></thead><tbody id="tabBody"></tbody></table></div>
-                </div>
+        <!-- TABELA -->
+        <div class="tab" id="tab-list">
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+                <button class="btn btn-outline btn-sm" onclick="exportCSV()">📥 CSV</button>
+                <button class="btn btn-danger btn-sm" onclick="clearAll()">🗑️ Limpar Tudo</button>
             </div>
+            <div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th>#</th><th>Fila</th><th>Nív</th><th>Pos</th><th style="text-align:right">Peso (g)</th><th style="text-align:center">Status</th><th></th></tr></thead><tbody id="tableBody"></tbody></table></div></div>
         </div>
+    </main>
 
-        <div class="tab" id="tab-stats">
-            <div id="statsEmpty" class="empty"><div class="ico">📐</div><h3>Sem dados</h3></div>
-            <div id="statsContent" style="display:none">
-                <div class="table-card"><div class="table-scroll" style="max-height:65vh"><table><thead><tr><th>Métrica</th><th style="text-align:right">Valor</th><th style="text-align:center">Unid</th></tr></thead><tbody id="statsBody"></tbody></table></div></div>
-            </div>
+    <!-- MODAL -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <h3>📤 Partilhar no WhatsApp</h3>
+            <button class="btn btn-wa" onclick="sendWhatsApp()">📸 Enviar Dashboard + CSV</button>
+            <button class="btn btn-outline" onclick="sendWhatsAppText()">📝 Enviar apenas texto</button>
+            <button class="btn-close btn" onclick="closeModal()">Cancelar</button>
         </div>
-
     </div>
+
+    <div id="captureArea"></div>
+
+    <nav class="nav">
+        <button class="active" data-tab="reg" onclick="switchTab('reg',this)"><span class="ni">📝</span>Registo</button>
+        <button data-tab="dash" onclick="switchTab('dash',this)"><span class="ni">📊</span>Dashboard</button>
+        <button data-tab="list" onclick="switchTab('list',this)"><span class="ni">📋</span>Dados</button>
+    </nav>
 
     <div class="toast" id="toast"></div>
 
-    <div class="bottom-nav">
-        <button class="active" data-t="home" onclick="go('home')"><span class="ni">🏠</span>Início</button>
-        <button data-t="registro" onclick="go('registro')"><span class="ni">📝</span>Registro</button>
-        <button data-t="dashboard" onclick="go('dashboard')"><span class="ni">📊</span>Dashboard</button>
-        <button data-t="tabela" onclick="go('tabela')"><span class="ni">📋</span>Dados</button>
-        <button data-t="stats" onclick="go('stats')"><span class="ni">📐</span>Stats</button>
-    </div>
-
 <script>
-let data = [], tol = 10, ch = {};
+let data = [], lote = { data: '', aviario: '', idade: '' }, tol = 10, charts = {}, stats = null;
 
-setTimeout(() => document.getElementById('splash').classList.add('hidden'), 1500);
+(function() {
+    let d = localStorage.getItem('mm_data'), l = localStorage.getItem('mm_lote');
+    if(d) data = JSON.parse(d);
+    if(l) lote = JSON.parse(l);
+    document.getElementById('loteData').value = lote.data || new Date().toISOString().split('T')[0];
+    document.getElementById('loteAviario').value = lote.aviario || '';
+    document.getElementById('loteIdade').value = lote.idade || '';
+    update();
+})();
 
-function stats() {
-    let p = data.map(d => d.p).sort((a,b) => a-b), n = p.length;
-    if (!n) return null;
-    let m = p.reduce((s,v) => s+v, 0) / n;
-    let v = n>1 ? p.reduce((s,x) => s+(x-m)**2, 0) / (n-1) : 0;
+function switchTab(id, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    if(btn) btn.classList.add('active');
+    update();
+}
+
+function save() { localStorage.setItem('mm_data', JSON.stringify(data)); localStorage.setItem('mm_lote', JSON.stringify(lote)); }
+
+function calcGroup(arr) {
+    let p = arr.map(d => d.p).sort((a,b) => a-b), n = p.length;
+    if(!n) return null;
+    let m = p.reduce((a,b) => a+b, 0) / n;
+    let v = n>1 ? p.reduce((a,b) => a + (b-m)**2, 0) / (n-1) : 0;
     let s = Math.sqrt(v);
     let cv = m ? (s/m)*100 : 0;
-    let se = s / Math.sqrt(n);
-    let icL = m - 1.96*se, icH = m + 1.96*se;
-    let min = p[0], max = p[n-1], amp = max - min;
-    let q1 = perc(p,25), q2 = perc(p,50), q3 = perc(p,75), iqr = q3 - q1;
-    let lf = q1 - 1.5*iqr, uf = q3 + 1.5*iqr;
-    let wl = p.find(w => w >= lf) || min, wh = [...p].reverse().find(w => w <= uf) || max;
-    let li = m * (1 - tol/100), ls = m * (1 + tol/100);
-    let ok = p.filter(w => w >= li && w <= ls).length;
-    let unif = n ? (ok/n)*100 : 0;
-    let skew = n>2 && s>0 ? (n/((n-1)*(n-2))) * p.reduce((a,x) => a + ((x-m)/s)**3, 0) : 0;
-    let kurt = n>3 && s>0 ? ((n*(n+1))/((n-1)*(n-2)*(n-3))) * p.reduce((a,x) => a + ((x-m)/s)**4, 0) - (3*(n-1)**2)/((n-2)*(n-3)) : 0;
-    return {n, m, s, cv, se, icL, icH, min, max, amp, q1, q2, q3, iqr, lf, uf, wl, wh, li, ls, ok, unif, skew, kurt, p};
+    let min = p[0], max = p[n-1];
+    let q1 = perc(p,25), q2 = perc(p,50), q3 = perc(p,75), iqr = q3-q1;
+    let lo = m*(1-tol/100), hi = m*(1+tol/100);
+    let ok = p.filter(w => w>=lo && w<=hi).length;
+    let unif = (ok/n)*100;
+    return { n, m, s, cv, min, max, q1, q2, q3, iqr, lo, hi, ok, unif };
 }
-function perc(a, q) {
-    let i = (q/100)*(a.length-1), l = Math.floor(i), h = Math.ceil(i);
-    return l === h ? a[l] : a[l] + (i-l)*(a[h]-a[l]);
+
+function calc() {
+    let p = data.map(d => d.p).sort((a,b) => a-b), n = p.length;
+    if(!n) return null;
+    let m = p.reduce((a,b) => a+b, 0) / n;
+    let v = n>1 ? p.reduce((a,b) => a + (b-m)**2, 0) / (n-1) : 0;
+    let s = Math.sqrt(v);
+    let cv = m ? (s/m)*100 : 0;
+    let se = s/Math.sqrt(n);
+    let min = p[0], max = p[n-1];
+    let q1 = perc(p,25), q2 = perc(p,50), q3 = perc(p,75), iqr = q3-q1;
+    let lo = m*(1-tol/100), hi = m*(1+tol/100);
+    let ok = p.filter(w => w>=lo && w<=hi).length;
+    let unif = (ok/n)*100;
+    let sk = n>2&&s>0 ? (n/((n-1)*(n-2)))*p.reduce((a,b)=>a+((b-m)/s)**3,0) : 0;
+    let wl = p.find(w=>w>=q1-1.5*iqr)||min, wh = [...p].reverse().find(w=>w<=q3+1.5*iqr)||max;
+    return { n, m, s, cv, se, lo, hi, ok, unif, sk, min, max, q1, q2, q3, iqr, wl, wh, icL: m-1.96*se, icH: m+1.96*se, p };
 }
+function perc(a, q) { let i=(q/100)*(a.length-1), l=Math.floor(i), h=Math.ceil(i); return l===h?a[l]:a[l]+(i-l)*(a[h]-a[l]); }
 const r2 = v => Math.round(v*100)/100;
-const f2 = v => r2(v).toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2});
-const f0 = v => Math.round(v).toLocaleString('pt-PT');
+const f2 = v => r2(v).toFixed(2);
+const f0 = v => Math.round(v);
 
-function add() {
-    let txt = document.getElementById('inPesos').value.trim();
-    if (!txt) return toast('Insira pesos.');
-    let nums = txt.split(/[\n,;\s]+/).filter(l=>l.trim()).map(l=>parseFloat(l.trim().replace(',','.'))).filter(p=>!isNaN(p)&&p>0);
-    if (!nums.length) return toast('Nenhum peso válido.');
-    let id = data.length ? Math.max(...data.map(d=>d.id)) : 0;
-    nums.forEach(p => { id++; data.push({id, p: r2(p)}); });
-    document.getElementById('inPesos').value = '';
-    refresh();
-    toast(nums.length + ' pesos registados');
+function processInput() {
+    lote = {
+        data: document.getElementById('loteData').value || new Date().toISOString().split('T')[0],
+        aviario: document.getElementById('loteAviario').value.trim() || 'N/I',
+        idade: document.getElementById('loteIdade').value || '--'
+    };
+    save();
+    let txt = document.getElementById('dataInput').value.trim();
+    if(!txt) return toast('Insira dados.');
+    let lines = txt.split(/\r?\n/), added = 0;
+    lines.forEach(line => {
+        let parts = line.trim().replace(/,/g,'.').split(/[\s]+/);
+        if(parts.length >= 4) {
+            let f = parseInt(parts[0]), n = parseInt(parts[1]), pos = parseInt(parts[2]), peso = parseFloat(parts[3]);
+            if(!isNaN(f) && !isNaN(n) && !isNaN(pos) && !isNaN(peso) && peso > 0) {
+                data.push({ id: Date.now()+Math.random(), fila: f, nivel: n, posicao: pos, p: r2(peso) });
+                added++;
+            }
+        }
+    });
+    save();
+    document.getElementById('dataInput').value = '';
+    update();
+    toast(added + ' registos adicionados');
 }
 
-function refresh() {
-    let s = stats(), hd = !!s;
-    document.getElementById('dashEmpty').style.display = hd ? 'none' : 'block';
-    document.getElementById('dashContent').style.display = hd ? 'block' : 'none';
-    document.getElementById('tabEmpty').style.display = hd ? 'none' : 'block';
-    document.getElementById('tabContent').style.display = hd ? 'block' : 'none';
-    document.getElementById('statsEmpty').style.display = hd ? 'none' : 'block';
-    document.getElementById('statsContent').style.display = hd ? 'block' : 'none';
-    let er = document.getElementById('emptyReg');
-    if (er) er.style.display = hd ? 'none' : 'block';
-    if (!hd) { document.getElementById('lastList').innerHTML = ''; document.getElementById('tabBody').innerHTML = ''; return; }
-    let tab = document.querySelector('.tab.active');
-    if (!tab) return;
-    let id = tab.id.replace('tab-','');
-    if (id==='dashboard'||id==='home') dash(s);
-    if (id==='registro') last(s);
-    if (id==='tabela') renderTab();
-    if (id==='stats') renderStats(s);
+function clearAll() { if(!confirm('Limpar tudo?')) return; data = []; lote = { data:'', aviario:'', idade:'' }; save(); update(); toast('Limpo'); }
+function deleteItem(id) { data = data.filter(d => d.id !== id); save(); update(); toast('Removido'); }
+
+function update() {
+    tol = parseFloat(document.getElementById('tolInput').value) || 10;
+    stats = calc();
+    if(!stats) {
+        document.getElementById('noData').style.display = 'block';
+        document.getElementById('dashContent').style.display = 'none';
+        document.getElementById('tableBody').innerHTML = '';
+        document.getElementById('recentList').innerHTML = '';
+        return;
+    }
+    document.getElementById('noData').style.display = 'none';
+    document.getElementById('dashContent').style.display = 'block';
+    renderDash(stats);
+    renderTable();
+    renderRecent();
+    renderStatsTable();
+    renderFilaTable();
+    renderNivelTable();
 }
 
-function dash(s) {
+function renderDash(s) {
     let kpis = [
-        {v:f0(s.m),l:'Média (g)',c:'#1a3a6b'},{v:f0(s.s),l:'Desvio (g)',c:'#805ad5'},
-        {v:f2(s.cv),l:'CV %',c:'#0ea5a0'},{v:f2(s.unif),l:'Uniform %',c:'#2d9c5e'},
-        {v:f0(s.min),l:'Mín (g)',c:'#c47f17'},{v:f0(s.max),l:'Máx (g)',c:'#c47f17'},{v:s.n,l:'Amostra',c:'#888'}
+        {v:f0(s.m),l:'Média g',c:'#1a3a6b'},{v:f0(s.s),l:'Desvio g',c:'#805ad5'},
+        {v:f2(s.cv),l:'CV %',c:'#0ea5a0'},{v:f2(s.unif),l:'Uniform %',c:'#10b981'},
+        {v:f0(s.min),l:'Mín g',c:'#f59e0b'},{v:f0(s.max),l:'Máx g',c:'#f59e0b'},{v:s.n,l:'Amostra',c:'#888'}
     ];
     document.getElementById('kpiRow').innerHTML = kpis.map(k => `<div class="kpi" style="border-left:3px solid ${k.c}"><div class="v" style="color:${k.c}">${k.v}</div><div class="l">${k.l}</div></div>`).join('');
-    let bc, bt, bs;
-    if (s.unif>=85) { bc='b-ex'; bt='EXCELENTE'; }
-    else if (s.unif>=80) { bc='b-ok'; bt='ACEITÁVEL'; }
-    else { bc='b-cr'; bt='CRÍTICO'; }
-    bs = `${f2(s.unif)}% · ${s.ok}/${s.n} dentro da faixa`;
-    document.getElementById('banner').innerHTML = `<div class="banner ${bc}"><span>${bt}</span><span>${bs}</span></div>`;
-    charts(s);
+    let bc, bt;
+    if(s.unif>=85){bc='b-ex';bt='🏆 EXCELENTE';}else if(s.unif>=80){bc='b-ok';bt='⚠️ ACEITÁVEL';}else{bc='b-cr';bt='🚨 CRÍTICO';}
+    document.getElementById('banner').innerHTML = `<div class="banner ${bc}"><span>${bt}</span><span>${f2(s.unif)}% · ${s.ok}/${s.n} dentro</span></div>`;
+    renderCharts(s);
 }
 
-function last(s) {
-    let list = [...data].slice(-10).reverse();
-    document.getElementById('lastList').innerHTML = list.map(r => {
-        let ok = r.p >= s.li && r.p <= s.ls;
-        return `<tr><td style="color:#aaa">#${r.id}</td><td style="font-weight:600">${f2(r.p)}</td><td style="text-align:center"><span class="badge ${ok?'badge-ok':'badge-no'}">${ok?'OK':'FORA'}</span></td></tr>`;
+function renderCharts(s) {
+    Object.values(charts).forEach(c => { if(c&&c.destroy) c.destroy(); });
+    let nb = Math.max(8, Math.min(14, Math.ceil(Math.sqrt(s.n))));
+    let bw = (s.max - s.min) / nb, wMin = s.min - bw*.3, wMax = s.max + bw*.3, abw = (wMax-wMin)/nb;
+    let counts=[], labels=[], curve=[];
+    for(let i=0;i<nb;i++){
+        let lo=wMin+i*abw, hi=wMin+(i+1)*abw, mid=lo+abw/2;
+        counts.push(s.p.filter(w=>w>=lo&&w<hi).length);
+        labels.push(mid.toFixed(0));
+        curve.push(+((1/(s.s*Math.sqrt(2*Math.PI)))*Math.exp(-.5*((mid-s.m)/s.s)**2)*s.n*abw).toFixed(2));
+    }
+    let el = document.querySelector("#chartHist");
+    if(el){charts.hist=new ApexCharts(el,{series:[{name:'Frequência',type:'column',data:counts},{name:'Curva Normal',type:'line',data:curve}],chart:{height:250,type:'line',toolbar:{show:false}},stroke:{width:[0,3],curve:['straight','smooth']},colors:['#1a3a6b','#ef4444'],fill:{opacity:[.85,0]},plotOptions:{bar:{borderRadius:4,columnWidth:'88%'}},xaxis:{categories:labels},legend:{show:false}});charts.hist.render();}
+    el = document.querySelector("#chartBox");
+    if(el){charts.box=new ApexCharts(el,{series:[{type:'boxPlot',data:[{x:'Lote',y:[s.wl,s.q1,s.q2,s.q3,s.wh]}]}],chart:{type:'boxPlot',height:200,toolbar:{show:false}},colors:['#1a3a6b']});charts.box.render();}
+    el = document.querySelector("#chartPie");
+    if(el){charts.pie=new ApexCharts(el,{series:[s.ok,s.n-s.ok],labels:['Dentro','Fora'],chart:{type:'donut',height:220,toolbar:{show:false}},colors:['#10b981','#ef4444'],legend:{position:'bottom'}});charts.pie.render();}
+    
+    // Gráfico por Fila
+    let filas = [...new Set(data.map(d => d.fila))].sort((a,b) => a-b);
+    let mediasFila = filas.map(f => {
+        let g = calcGroup(data.filter(d => d.fila === f));
+        return g ? r2(g.m) : 0;
+    });
+    let contFila = filas.map(f => data.filter(d => d.fila === f).length);
+    el = document.querySelector("#chartFila");
+    if(el){charts.fila=new ApexCharts(el,{series:[{data:mediasFila}],chart:{type:'bar',height:200,toolbar:{show:false}},colors:['#805ad5'],plotOptions:{bar:{borderRadius:6,columnWidth:'60%'}},xaxis:{categories:filas.map((f,i)=>`F${f} (${contFila[i]})`),labels:{style:{fontSize:'9px'}}},dataLabels:{enabled:true,formatter:v=>v>0?Math.round(v)+'g':'',style:{fontWeight:'bold',fontSize:'9px'}}});charts.fila.render();}
+}
+
+function renderStatsTable() {
+    let s = stats;
+    let rows = [
+        ['Média Aritmética', `${f2(s.m)} g`, 'Centro da distribuição'],
+        ['Mediana', `${f2(s.q2)} g`, '50% dos dados'],
+        ['Desvio Padrão', `${f2(s.s)} g`, 'Dispersão'],
+        ['Coef. Variação', `${f2(s.cv)} %`, s.cv < 8 ? 'Ideal (<8%)' : 'Elevado'],
+        ['Variância', `${f2(s.s*s.s)} g²`, ''],
+        ['Erro Padrão', `${f2(s.se)} g`, 'Precisão da média'],
+        ['IC 95%', `${f0(s.icL)} – ${f0(s.icH)} g`, 'Intervalo de confiança'],
+        ['Mínimo', `${f2(s.min)} g`, ''],
+        ['Máximo', `${f2(s.max)} g`, ''],
+        ['Amplitude', `${f2(s.max-s.min)} g`, ''],
+        ['Q1 (25%)', `${f2(s.q1)} g`, '1º quartil'],
+        ['Q3 (75%)', `${f2(s.q3)} g`, '3º quartil'],
+        ['IQR', `${f2(s.iqr)} g`, 'Q3 - Q1'],
+        ['Assimetria', f2(s.sk), s.sk > 0.5 ? 'Cauda direita' : (s.sk < -0.5 ? 'Cauda esquerda' : 'Simétrica')],
+    ];
+    document.getElementById('statsTable').innerHTML = `<div class="tbl-scroll" style="max-height:300px"><table><thead><tr><th>Métrica</th><th style="text-align:right">Valor</th><th>Interpretação</th></tr></thead>
+    <tbody>${rows.map(r => `<tr><td style="font-weight:600">${r[0]}</td><td style="text-align:right;font-weight:700;color:var(--manmart)">${r[1]}</td><td style="font-size:9px;color:var(--text2)">${r[2]}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function renderFilaTable() {
+    let filas = [...new Set(data.map(d => d.fila))].sort((a,b) => a-b);
+    let rows = filas.map(f => {
+        let g = calcGroup(data.filter(d => d.fila === f));
+        if(!g) return null;
+        let ok = g.unif >= 85 ? '✅' : (g.unif >= 80 ? '⚠️' : '❌');
+        return { f, g, ok };
+    }).filter(r => r);
+    
+    document.getElementById('filaTable').innerHTML = rows.length ? `<div class="tbl-scroll" style="max-height:250px"><table><thead><tr><th>Fila</th><th style="text-align:right">N</th><th style="text-align:right">Média (g)</th><th style="text-align:right">Desvio</th><th style="text-align:right">CV %</th><th style="text-align:right">Uniform %</th></tr></thead>
+    <tbody>${rows.map(r => `<tr><td style="font-weight:700">Fila ${r.f} ${r.ok}</td><td style="text-align:right">${r.g.n}</td><td style="text-align:right;font-weight:600">${f0(r.g.m)}</td><td style="text-align:right">${f0(r.g.s)}</td><td style="text-align:right">${f2(r.g.cv)}</td><td style="text-align:right;font-weight:600;color:${r.g.unif>=85?'#10b981':(r.g.unif>=80?'#f59e0b':'#ef4444')}">${f2(r.g.unif)}%</td></tr>`).join('')}</tbody></table></div>`
+    : '<p style="color:#94a3b8;text-align:center">Sem dados</p>';
+}
+
+function renderNivelTable() {
+    let niveis = [...new Set(data.map(d => d.nivel))].sort((a,b) => a-b);
+    let rows = niveis.map(n => {
+        let g = calcGroup(data.filter(d => d.nivel === n));
+        if(!g) return null;
+        let ok = g.unif >= 85 ? '✅' : (g.unif >= 80 ? '⚠️' : '❌');
+        return { n, g, ok };
+    }).filter(r => r);
+    
+    document.getElementById('nivelTable').innerHTML = rows.length ? `<div class="tbl-scroll" style="max-height:250px"><table><thead><tr><th>Nível</th><th style="text-align:right">N</th><th style="text-align:right">Média (g)</th><th style="text-align:right">Desvio</th><th style="text-align:right">CV %</th><th style="text-align:right">Uniform %</th></tr></thead>
+    <tbody>${rows.map(r => `<tr><td style="font-weight:700">Nível ${r.n} ${r.ok}</td><td style="text-align:right">${r.g.n}</td><td style="text-align:right;font-weight:600">${f0(r.g.m)}</td><td style="text-align:right">${f0(r.g.s)}</td><td style="text-align:right">${f2(r.g.cv)}</td><td style="text-align:right;font-weight:600;color:${r.g.unif>=85?'#10b981':(r.g.unif>=80?'#f59e0b':'#ef4444')}">${f2(r.g.unif)}%</td></tr>`).join('')}</tbody></table></div>`
+    : '<p style="color:#94a3b8;text-align:center">Sem dados</p>';
+}
+
+function renderTable() {
+    let s = stats;
+    document.getElementById('tableBody').innerHTML = data.map((d,i) => {
+        let ok = d.p >= s.lo && d.p <= s.hi;
+        return `<tr><td style="color:#aaa">#${i+1}</td><td>${d.fila}</td><td>${d.nivel}</td><td>${d.posicao}</td>
+        <td style="text-align:right;font-weight:600">${f2(d.p)}</td>
+        <td style="text-align:center"><span class="badge ${ok?'badge-ok':'badge-no'}">${ok?'OK':'FORA'}</span></td>
+        <td><button onclick="deleteItem(${d.id})" style="background:none;border:none;cursor:pointer;color:#aaa">×</button></td></tr>`;
     }).join('');
 }
 
-function renderTab() {
-    let s = stats(); if (!s) return;
-    let fs = document.getElementById('fStat')?.value || '';
-    let filtered = data.map(r => ({...r, status: (r.p>=s.li&&r.p<=s.ls)?'Dentro':'Fora', desvio: r2(r.p-s.m)}));
-    if (fs) filtered = filtered.filter(r => r.status === fs);
-    document.getElementById('tabBody').innerHTML = filtered.map(r => `
-        <tr><td style="color:#aaa">#${r.id}</td><td style="font-weight:600">${f2(r.p)}</td>
-        <td style="text-align:center"><span class="badge ${r.status==='Dentro'?'badge-ok':'badge-no'}">${r.status==='Dentro'?'OK':'FORA'}</span></td>
-        <td style="text-align:right;font-weight:600;color:${r.desvio>=0?'#2d9c5e':'#dc3545'}">${r.desvio>=0?'+':''}${f2(r.desvio)}</td>
-        <td><button onclick="del(${r.id})" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:14px">×</button></td></tr>
-    `).join('');
+function renderRecent() {
+    let s = stats, rec = [...data].slice(-6).reverse();
+    document.getElementById('recentList').innerHTML = rec.length ? `<div class="tbl-scroll" style="max-height:200px"><table><thead><tr><th>#</th><th>F</th><th>N</th><th>P</th><th style="text-align:right">Peso</th><th style="text-align:center">St</th></tr></thead>
+    <tbody>${rec.map(d => { let ok=d.p>=s.lo&&d.p<=s.hi; return `<tr><td style="color:#aaa">#${data.indexOf(d)+1}</td><td>${d.fila}</td><td>${d.nivel}</td><td>${d.posicao}</td><td style="text-align:right;font-weight:600">${f2(d.p)}</td><td style="text-align:center"><span class="badge ${ok?'badge-ok':'badge-no'}">${ok?'OK':'FORA'}</span></td></tr>`; }).join('')}</tbody></table></div>`
+    : '<div class="empty"><p>Sem registos</p></div>';
 }
 
-function renderStats(s) {
-    let rows = [
-        ['Média',`${f2(s.m)} g`,'g'],['Mediana',`${f2(s.q2)} g`,'g'],['Desvio Padrão',`${f2(s.s)} g`,'g'],
-        ['Coef. Variação',`${f2(s.cv)} %`,'%'],['IC 95%',`${f0(s.icL)} – ${f0(s.icH)}`,'g'],
-        ['Mínimo',`${f2(s.min)} g`,'g'],['Máximo',`${f2(s.max)} g`,'g'],['Amplitude',`${f2(s.amp)} g`,'g'],
-        ['Q1 (25%)',`${f2(s.q1)} g`,'g'],['Q3 (75%)',`${f2(s.q3)} g`,'g'],['IQR',`${f2(s.iqr)} g`,'g'],
-        ['Assimetria',f2(s.skew),''],['Curtose',f2(s.kurt),'']
-    ];
-    document.getElementById('statsBody').innerHTML = rows.map((r,i) => `<tr style="${i%2?'background:#fafbfc':''}"><td style="font-weight:600">${r[0]}</td><td style="text-align:right;font-weight:600;color:var(--manmart)">${r[1]}</td><td style="text-align:center;color:#aaa;font-size:10px">${r[2]}</td></tr>`).join('');
+// CSV com TODAS as tabelas
+function gerarCSVCompleto() {
+    let s = stats; if(!s) return null;
+    let csv = `MANMART COMERCIAL - RELATÓRIO DE LOTE\n`;
+    csv += `Aviário,${lote.aviario}\nData,${lote.data}\nIdade (semanas),${lote.idade}\nTotal de Aves,${s.n}\n\n`;
+    
+    // Estatísticas Descritivas
+    csv += `ESTATÍSTICAS DESCRITIVAS\n`;
+    csv += `Métrica,Valor\n`;
+    csv += `Média (g),${f2(s.m)}\nMediana (g),${f2(s.q2)}\nDesvio Padrão (g),${f2(s.s)}\nCV (%),${f2(s.cv)}\n`;
+    csv += `IC 95%,${f0(s.icL)} – ${f0(s.icH)} g\nMínimo (g),${f2(s.min)}\nMáximo (g),${f2(s.max)}\n`;
+    csv += `Amplitude (g),${f2(s.max-s.min)}\nQ1 (g),${f2(s.q1)}\nQ3 (g),${f2(s.q3)}\nIQR (g),${f2(s.iqr)}\n`;
+    csv += `Assimetria,${f2(s.sk)}\nUniformidade (%),${f2(s.unif)}\nClassificação,${s.unif>=85?'EXCELENTE':(s.unif>=80?'ACEITÁVEL':'CRÍTICO')}\n\n`;
+    
+    // Análise por Fila
+    csv += `ANÁLISE POR FILA\n`;
+    csv += `Fila,N,Média (g),Desvio,CV (%),Uniform (%)\n`;
+    let filas = [...new Set(data.map(d => d.fila))].sort((a,b) => a-b);
+    filas.forEach(f => {
+        let g = calcGroup(data.filter(d => d.fila === f));
+        if(g) csv += `Fila ${f},${g.n},${f0(g.m)},${f0(g.s)},${f2(g.cv)},${f2(g.unif)}\n`;
+    });
+    csv += `\n`;
+    
+    // Análise por Nível
+    csv += `ANÁLISE POR NÍVEL\n`;
+    csv += `Nível,N,Média (g),Desvio,CV (%),Uniform (%)\n`;
+    let niveis = [...new Set(data.map(d => d.nivel))].sort((a,b) => a-b);
+    niveis.forEach(n => {
+        let g = calcGroup(data.filter(d => d.nivel === n));
+        if(g) csv += `Nível ${n},${g.n},${f0(g.m)},${f0(g.s)},${f2(g.cv)},${f2(g.unif)}\n`;
+    });
+    csv += `\n`;
+    
+    // Dados individuais
+    csv += `DADOS INDIVIDUAIS\n`;
+    csv += `ID,Fila,Nivel,Posicao,Peso_g,Status,Desvio_g\n`;
+    data.forEach((d,i) => {
+        let st=(d.p>=s.lo&&d.p<=s.hi)?'Dentro':'Fora';
+        csv += `${i+1},${d.fila},${d.nivel},${d.posicao},${f2(d.p)},${st},${f2(r2(d.p-s.m))}\n`;
+    });
+    
+    csv += `\nBelote Matsinhe · Farm Manager & Analyst · +258 862159003 · Manmart Comercial, Lda.`;
+    return new Blob([csv],{type:'text/csv'});
 }
 
-function charts(s) {
-    Object.values(ch).forEach(c => { if(c&&c.destroy) c.destroy(); });
+function exportCSV() {
+    let blob = gerarCSVCompleto(); if(!blob) return toast('Sem dados');
+    let u = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href=u; a.download=`manmart_${lote.aviario}_completo.csv`; a.click(); URL.revokeObjectURL(u);
+    toast('CSV completo exportado');
+}
+
+// WHATSAPP
+function shareWhatsApp() { if(!stats) return toast('Sem dados'); document.getElementById('shareModal').classList.add('show'); }
+function closeModal() { document.getElementById('shareModal').classList.remove('show'); }
+
+function sendWhatsAppText() {
+    let s = stats, cl = s.unif>=85?'EXCELENTE':(s.unif>=80?'ACEITÁVEL':'CRÍTICO');
+    let msg = `🐔 *MANMART - ${lote.aviario}*\n📅 ${lote.data} | 🐔 ${lote.idade} sem. | ${s.n} aves\n`;
+    msg += `📊 Média: ${f0(s.m)}g | CV: ${f2(s.cv)}% | Uniformidade: ${f2(s.unif)}% (${cl})\n`;
+    msg += `📈 IC 95%: ${f0(s.icL)}-${f0(s.icH)}g | Q1:${f0(s.q1)} Q2:${f0(s.q2)} Q3:${f0(s.q3)}\n\n`;
     
-    // HISTOGRAMA COM LINHA DE DENSIDADE (conceito correto)
-    let nb = Math.ceil(Math.sqrt(s.n)); // Regra de Sturges simplificada
-    nb = Math.max(8, Math.min(nb, 20)); // Entre 8 e 20 bins
-    let wMin = s.min - (s.max-s.min)*0.05;
-    let wMax = s.max + (s.max-s.min)*0.05;
-    let bw = (wMax - wMin) / nb;
-    let hd = [], cats = [], curve = [];
+    // Resumo por Fila
+    let filas = [...new Set(data.map(d => d.fila))].sort((a,b) => a-b);
+    msg += `🏠 *Por Fila:*\n`;
+    filas.forEach(f => {
+        let g = calcGroup(data.filter(d => d.fila === f));
+        if(g) msg += `F${f}: ${f0(g.m)}g (${g.n} aves, ${f2(g.unif)}%)\n`;
+    });
+    msg += `\n👤 Belote Matsinhe · +258 862159003`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
+    closeModal();
+}
+
+async function sendWhatsApp() {
+    closeModal();
+    toast('A gerar relatório...');
+    let csvBlob = gerarCSVCompleto();
+    let csvFile = csvBlob ? new File([csvBlob], `manmart_${lote.aviario}.csv`, {type:'text/csv'}) : null;
     
-    for (let i=0; i<nb; i++) {
-        let lo = wMin + i*bw;
-        let hi = wMin + (i+1)*bw;
-        hd.push(s.p.filter(w => w >= lo && w < hi).length);
-        cats.push(lo.toFixed(0));
-        let mid = lo + bw/2;
-        let nd = s.s > 0 ? s.n * bw * (1/(s.s*Math.sqrt(2*Math.PI))) * Math.exp(-0.5*((mid-s.m)/s.s)**2) : 0;
-        curve.push(r2(nd));
-    }
+    // Capturar área de estatísticas
+    let capDiv = document.getElementById('captureArea');
+    let s = stats;
+    let cl = s.unif>=85?'🏆 EXCELENTE':(s.unif>=80?'⚠️ ACEITÁVEL':'🚨 CRÍTICO');
     
-    let el = document.querySelector("#chartHist");
-    if (el) {
-        ch.hist = new ApexCharts(el, {
-            series: [
-                {name:'Frequência',data:hd,type:'column'},
-                {name:'Curva Normal',data:curve,type:'line'}
-            ],
-            chart: {height:'100%',toolbar:{show:false},type:'line',animations:{enabled:true}},
-            colors: ['#1a3a6b','#dc3545'],
-            stroke: {width:[0,3],curve:['straight','smooth']},
-            fill: {opacity:[0.85,0]},
-            plotOptions: {bar:{borderRadius:3,columnWidth:'92%'}},
-            xaxis: {
-                categories:cats,
-                title:{text:'Peso (g)',style:{fontSize:'10px',fontWeight:600}},
-                labels:{style:{fontSize:'8px'},rotate:0}
-            },
-            yaxis: {
-                title:{text:'Frequência',style:{fontSize:'10px',fontWeight:600}},
-                labels:{style:{fontSize:'9px'}}
-            },
-            legend: {show:true,position:'top',fontSize:'10px',markers:{radius:4}},
-            tooltip: {shared:true, intersect:false}
-        });
-        ch.hist.render();
-    }
+    // Construir HTML de captura com todas as tabelas
+    let html = `<div style="padding:10px">
+        <h2>🐔 MANMART COMERCIAL</h2>
+        <p style="font-size:9px;color:#64748b;margin:0">${lote.aviario} | ${lote.data} | ${lote.idade} sem. | ${s.n} aves</p>
+        <h3>Estatísticas Descritivas</h3>
+        <div class="cap-stat-row">
+            <div class="cap-stat"><div class="cap-v">${f0(s.m)}</div><div class="cap-l">Média (g)</div></div>
+            <div class="cap-stat"><div class="cap-v">${f2(s.cv)}%</div><div class="cap-l">CV</div></div>
+            <div class="cap-stat"><div class="cap-v">${f2(s.unif)}%</div><div class="cap-l">Uniformidade</div></div>
+            <div class="cap-stat"><div class="cap-v">${cl}</div><div class="cap-l">Classificação</div></div>
+            <div class="cap-stat"><div class="cap-v">${f0(s.s)}</div><div class="cap-l">Desvio (g)</div></div>
+            <div class="cap-stat"><div class="cap-v">${f0(s.icL)}-${f0(s.icH)}</div><div class="cap-l">IC 95% (g)</div></div>
+            <div class="cap-stat"><div class="cap-v">${f0(s.q1)}/${f0(s.q2)}/${f0(s.q3)}</div><div class="cap-l">Q1/Med/Q3</div></div>
+            <div class="cap-stat"><div class="cap-v">${f2(s.sk)}</div><div class="cap-l">Assimetria</div></div>
+        </div>
+        <h3>Análise por Fila</h3>
+        <table><thead><tr><th>Fila</th><th>N</th><th>Média</th><th>Desvio</th><th>CV%</th><th>Unif%</th></tr></thead><tbody>`;
     
-    // BOXPLOT
-    el = document.querySelector("#chartBox");
-    if (el) {
-        ch.box = new ApexCharts(el, {
-            series: [{type:'boxPlot',data:[{x:'Lote',y:[s.wl,s.q1,s.q2,s.q3,s.wh]}]}],
-            chart: {type:'boxPlot',height:'100%',toolbar:{show:false}},
-            colors: ['#1a3a6b'],
-            plotOptions: {boxPlot:{colors:{upper:'#1a3a6b',lower:'#889'}}},
-            yaxis: {title:{text:'Peso (g)',style:{fontSize:'10px'}}}
-        });
-        ch.box.render();
-    }
+    let filas = [...new Set(data.map(d => d.fila))].sort((a,b) => a-b);
+    filas.forEach(f => {
+        let g = calcGroup(data.filter(d => d.fila === f));
+        if(g) html += `<tr><td>Fila ${f}</td><td>${g.n}</td><td>${f0(g.m)}</td><td>${f0(g.s)}</td><td>${f2(g.cv)}</td><td style="color:${g.unif>=85?'#10b981':(g.unif>=80?'#f59e0b':'#ef4444')}">${f2(g.unif)}%</td></tr>`;
+    });
+    html += `</tbody></table>`;
     
-    // PIZZA
-    el = document.querySelector("#chartPie");
-    if (el) {
-        ch.pie = new ApexCharts(el, {
-            series: [s.ok, s.n-s.ok],
-            labels: ['Dentro','Fora'],
-            chart: {type:'donut',height:'100%',toolbar:{show:false}},
-            colors: ['#2d9c5e','#dc3545'],
-            plotOptions: {pie:{donut:{labels:{show:true,total:{show:true,label:'Total',formatter:()=>s.n+' aves'}}}}},
-            legend: {position:'bottom',fontSize:'11px'}
-        });
-        ch.pie.render();
+    html += `<h3>Análise por Nível</h3>
+        <table><thead><tr><th>Nível</th><th>N</th><th>Média</th><th>Desvio</th><th>CV%</th><th>Unif%</th></tr></thead><tbody>`;
+    let niveis = [...new Set(data.map(d => d.nivel))].sort((a,b) => a-b);
+    niveis.forEach(n => {
+        let g = calcGroup(data.filter(d => d.nivel === n));
+        if(g) html += `<tr><td>Nível ${n}</td><td>${g.n}</td><td>${f0(g.m)}</td><td>${f0(g.s)}</td><td>${f2(g.cv)}</td><td style="color:${g.unif>=85?'#10b981':(g.unif>=80?'#f59e0b':'#ef4444')}">${f2(g.unif)}%</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    html += `<div class="cap-sig">Belote Matsinhe · Farm Manager & Analyst · +258 862159003 · Manmart Comercial, Lda.</div></div>`;
+    
+    capDiv.innerHTML = html;
+    
+    try {
+        let canvas = await html2canvas(capDiv, {scale:2,backgroundColor:'#ffffff',useCORS:true,allowTaint:true});
+        capDiv.innerHTML = '';
+        canvas.toBlob(async function(blob) {
+            let file = new File([blob], `manmart_${lote.aviario}_relatorio.png`, {type:'image/png'});
+            if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+                try { await navigator.share({files:[file],title:'Manmart Relatório'}); toast('Partilhado!'); }
+                catch(e) { fallbackShare(file, csvFile); }
+            } else { fallbackShare(file, csvFile); }
+        }, 'image/png');
+    } catch(e) {
+        capDiv.innerHTML = '';
+        toast('A enviar texto...');
+        sendWhatsAppText();
     }
 }
 
-function del(id) { if(confirm('Excluir #'+id+'?')){ data = data.filter(d=>d.id!==id); refresh(); toast('Excluído'); } }
-function clearAll() { if(data.length&&confirm('Limpar TUDO?')){ data=[]; Object.values(ch).forEach(c=>{if(c&&c.destroy)c.destroy()}); ch={}; refresh(); toast('Limpo'); } }
-function csv() {
-    let s = stats(); if(!s) return toast('Sem dados');
-    let t = 'ID,Peso_g,Status,Desvio_g\n';
-    data.forEach(r => { let st = (r.p>=s.li&&r.p<=s.ls)?'Dentro':'Fora'; t += `${r.id},${f2(r.p)},${st},${f2(r2(r.p-s.m))}\n`; });
-    let b = new Blob(['\uFEFF'+t],{type:'text/csv'}), u = URL.createObjectURL(b), a = document.createElement('a');
-    a.href=u; a.download=`manmart_${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(u); toast('CSV exportado');
+function fallbackShare(imgFile, csvFile) {
+    sendWhatsAppText();
+    if(imgFile) { let u=URL.createObjectURL(imgFile), a=document.createElement('a'); a.href=u; a.download=imgFile.name; a.click(); URL.revokeObjectURL(u); }
+    if(csvFile) { let u=URL.createObjectURL(csvFile), a=document.createElement('a'); a.href=u; a.download=csvFile.name; a.click(); URL.revokeObjectURL(u); }
+    toast('Ficheiros descarregados');
 }
-function go(id) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-'+id).classList.add('active');
-    document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
-    document.querySelector(`.bottom-nav button[data-t="${id}"]`).classList.add('active');
-    refresh();
-    setTimeout(() => window.dispatchEvent(new Event('resize')), 200);
-}
-function updateTol() { tol = parseFloat(document.getElementById('tol').value)||10; tol = Math.max(1,Math.min(30,tol)); document.getElementById('tol').value = tol; refresh(); }
-function toast(m) { let t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('show'), 2000); }
 
-refresh();
+function toast(m) { let t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2000); }
+document.getElementById('shareModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 </script>
 </body>
 </html>
